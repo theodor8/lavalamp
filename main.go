@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"math"
 	"math/rand/v2"
@@ -16,14 +17,16 @@ type ball struct {
 }
 
 type lava struct {
-	balls   []ball
-	gravity float64
+	balls     []ball
+	gravity   float64
+	maxVel    float64
+	intensity float64
 }
 
 func (l *lava) brightness(x, y float64) float64 {
 	var d float64
 	for _, ball := range l.balls {
-		d += ball.size / math.Pow(math.Pow(ball.x-x, 2)+math.Pow(ball.y-y, 2), 0.65)
+		d += ball.size / math.Pow(math.Pow(ball.x-x, 2)+math.Pow(ball.y-y, 2), 1.0-l.intensity)
 	}
 	return math.Min(1.0, d)
 }
@@ -51,16 +54,17 @@ func (l *lava) update() {
 	w, h := s.Size()
 	for i := range l.balls {
 		b := &l.balls[i]
-		b.vx = math.Max(-2, math.Min(2, b.vx))
-		b.vy = math.Max(-2, math.Min(2, b.vy))
+		b.vx = math.Max(-l.maxVel, math.Min(l.maxVel, b.vx))
+		b.vy = math.Max(-l.maxVel, math.Min(l.maxVel, b.vy))
 		b.x += b.vx
 		b.y += b.vy
-		if b.x < -float64(w) || b.x >= 2.0*float64(w) {
+		if b.x < 0 || b.x >= float64(w) {
 			b.vx = -b.vx
 		}
-		if b.y < -2.0*float64(h) || b.y >= 4.0*float64(h) {
+		if b.y < 0 || b.y >= float64(h*2) {
 			b.vy = -b.vy
 		}
+		// TODO: smoother oob
 	}
 }
 
@@ -87,10 +91,10 @@ func drawScreen() {
 			y1 := y * 2
 			y2 := y1 + 1
 			st := tcell.StyleDefault.Background(tcell.ColorBlack).Foreground(tcell.ColorBlack)
-			b := l.brightness(float64(x), float64(y1))
-			st = st.Background(tcell.NewRGBColor(int32(b*255), 0, 0))
-			b = l.brightness(float64(x), float64(y2))
-			st = st.Foreground(tcell.NewRGBColor(int32(b*255), 0, 0))
+			b := int32(l.brightness(float64(x), float64(y1)) * 255)
+			st = st.Background(tcell.NewRGBColor(b, 0, 255-b/2))
+			b = int32(l.brightness(float64(x), float64(y2)) * 255)
+			st = st.Foreground(tcell.NewRGBColor(b, 0, 255-b/2))
 			s.SetContent(x, y, gl, nil, st)
 		}
 	}
@@ -118,17 +122,24 @@ func main() {
 	s.Show()
 
 	l = &lava{
-		balls:   []ball{},
-		gravity: 0.3,
+		balls: []ball{},
 	}
+
+	flag.Float64Var(&l.intensity, "i", 0.5, "intensity of the glow")
+	flag.Float64Var(&l.gravity, "g", 0.2, "gravity force strength")
+	flag.Float64Var(&l.maxVel, "m", 1.2, "maximum velocity of the balls")
+	ballsSize := flag.Float64("s", 5.0, "size of the balls")
+	numBalls := flag.Int("n", 5, "number of balls")
+	flag.Parse()
+
 	w, h := s.Size()
-	for range 15 {
+	for range *numBalls {
 		b := ball{
-			x:    rand.Float64() * 3.0 * float64(w) - float64(w),
-			y:    rand.Float64() * 3.0 * float64(h*2) - float64(h*2),
+			x:    rand.Float64() * float64(w),
+			y:    rand.Float64() * float64(h*2),
 			vx:   rand.Float64()*2 - 1,
 			vy:   rand.Float64()*2 - 1,
-			size: rand.Float64()*6 + 9,
+			size: rand.Float64()**ballsSize + *ballsSize,
 		}
 		l.balls = append(l.balls, b)
 	}
