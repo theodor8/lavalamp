@@ -18,9 +18,18 @@ func pollEvents(s tcell.Screen, l *lava) {
 			l.w, l.h = w, h*2
 			s.Sync()
 		case *tcell.EventKey:
-			if ev.Key() == tcell.KeyEscape || ev.Key() == tcell.KeyCtrlC || ev.Rune() == 'q' {
+			switch ev.Key() {
+			case tcell.KeyCtrlC, tcell.KeyEscape:
 				close(quit)
 				return
+			case tcell.KeyRune:
+				switch ev.Rune() {
+				case 'q':
+					close(quit)
+					return
+				case ' ':
+					paused = !paused
+				}
 			}
 		}
 	}
@@ -44,6 +53,7 @@ func drawScreen(s tcell.Screen, l *lava) {
 	s.Show()
 }
 
+var paused bool = false
 var quit chan struct{}
 
 func main() {
@@ -88,8 +98,10 @@ func main() {
 
 	go func() {
 		for {
-			l.update()
-			drawScreen(s, l)
+			if !paused {
+				l.update()
+				drawScreen(s, l)
+			}
 			time.Sleep(time.Millisecond * 16)
 		}
 	}()
