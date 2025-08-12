@@ -1,1 +1,1 @@
-# maze-screensaver
+# lavalamp terminal screensaver

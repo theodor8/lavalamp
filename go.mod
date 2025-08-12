@@ -1,4 +1,4 @@
-module mazesaver
+module lavalamp
 
 go 1.24.6
 
