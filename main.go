@@ -58,13 +58,16 @@ func (l *lava) update() {
 		b.vy = math.Max(-l.maxVel, math.Min(l.maxVel, b.vy))
 		b.x += b.vx
 		b.y += b.vy
-		if b.x < 0 || b.x >= float64(w) {
-			b.vx = -b.vx
+		if b.x < 0 {
+			b.vx += 0.05
+		} else if b.x >= float64(w) {
+			b.vx -= 0.05
 		}
-		if b.y < 0 || b.y >= float64(h*2) {
-			b.vy = -b.vy
+		if b.y < 0 {
+			b.vy += 0.05
+		} else if b.y >= float64(h*2) {
+			b.vy -= 0.05
 		}
-		// TODO: smoother oob
 	}
 }
 
@@ -107,6 +110,17 @@ var l *lava
 
 func main() {
 
+	l = &lava{
+		balls: []ball{},
+	}
+
+	flag.Float64Var(&l.intensity, "i", 0.5, "intensity of the glow")
+	flag.Float64Var(&l.gravity, "g", 0.2, "gravity force strength")
+	flag.Float64Var(&l.maxVel, "m", 0.8, "maximum velocity of the balls")
+	ballsSize := flag.Float64("s", 5.0, "size of the balls")
+	numBalls := flag.Int("n", 5, "number of balls")
+	flag.Parse()
+
 	var err error
 	s, err = tcell.NewScreen()
 	if err != nil {
@@ -120,17 +134,6 @@ func main() {
 
 	s.Clear()
 	s.Show()
-
-	l = &lava{
-		balls: []ball{},
-	}
-
-	flag.Float64Var(&l.intensity, "i", 0.5, "intensity of the glow")
-	flag.Float64Var(&l.gravity, "g", 0.2, "gravity force strength")
-	flag.Float64Var(&l.maxVel, "m", 1.2, "maximum velocity of the balls")
-	ballsSize := flag.Float64("s", 5.0, "size of the balls")
-	numBalls := flag.Int("n", 5, "number of balls")
-	flag.Parse()
 
 	w, h := s.Size()
 	for range *numBalls {
