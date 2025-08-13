@@ -13,7 +13,7 @@ type lava struct {
 	gravity   float64
 	maxVel    float64
 	intensity float64
-	w, h int
+	w, h      int
 }
 
 func (l *lava) brightness(x, y float64) float64 {
@@ -25,6 +25,7 @@ func (l *lava) brightness(x, y float64) float64 {
 }
 
 func (l *lava) update() {
+	// TODO: balls go up/down instead of bounce around
 	for i1 := range l.balls {
 		for i2 := i1 + 1; i2 < len(l.balls); i2++ {
 			b1 := &l.balls[i1]

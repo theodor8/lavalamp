@@ -62,10 +62,10 @@ func main() {
 		balls: []ball{},
 	}
 
-	flag.Float64Var(&l.intensity, "i", 0.5, "intensity of the glow")
-	flag.Float64Var(&l.gravity, "g", 0.2, "gravity force strength")
+	flag.Float64Var(&l.intensity, "i", 0.3, "intensity of the glow")
+	flag.Float64Var(&l.gravity, "g", 0.01, "gravity force strength")
 	flag.Float64Var(&l.maxVel, "m", 1.0, "maximum velocity of the balls")
-	ballsSize := flag.Float64("s", 5.0, "size of the balls")
+	ballsSize := flag.Float64("s", 20.0, "size of the balls")
 	numBalls := flag.Int("n", 5, "number of balls")
 	flag.Parse()
 
@@ -102,7 +102,7 @@ func main() {
 				l.update()
 				drawScreen(s, l)
 			}
-			time.Sleep(time.Millisecond * 16)
+			time.Sleep(time.Millisecond * 33)
 		}
 	}()
 
